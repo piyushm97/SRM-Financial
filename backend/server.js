@@ -1,47 +1,37 @@
+// backend/server.js
 const express = require('express');
 const axios = require('axios');
 const cors = require('cors');
+require('dotenv').config();
 
 const app = express();
 const PORT = 5000;
 
 app.use(cors());
 
-// Replace with your real API key
-const API_KEY = 'YOUR_ALPHA_VANTAGE_API_KEY';
+// Replace with your actual API key from Alpha Vantage or any stock API
+const API_KEY = process.env.STOCK_API_KEY;
+const BASE_URL = 'https://www.alphavantage.co/query';
 
-app.get('/api/stock/:symbol', async (req, res) => {
-  const symbol = req.params.symbol;
-  try {
-    const response = await axios.get(
-      `https://www.alphavantage.co/query`,
-      {
-        params: {
-          function: 'TIME_SERIES_INTRADAY',
-          symbol,
-          interval: '1min',
-          apikey: API_KEY
-        }
-      }
-    );
+app.get('/api/stocks', async (req, res) => {
+    const { symbol = 'AAPL' } = req.query;
 
-    const timeSeries = response.data['Time Series (1min)'];
-    if (!timeSeries) return res.status(404).json({ error: 'Stock data not found' });
+    try {
+        const response = await axios.get(BASE_URL, {
+            params: {
+                function: 'TIME_SERIES_INTRADAY',
+                symbol,
+                interval: '5min',
+                apikey: API_KEY,
+            }
+        });
 
-    const latestTimestamp = Object.keys(timeSeries)[0];
-    const latestData = timeSeries[latestTimestamp];
-
-    res.json({
-      symbol: symbol.toUpperCase(),
-      price: latestData['1. open'],
-      timestamp: latestTimestamp
-    });
-  } catch (error) {
-    console.error(error);
-    res.status(500).json({ error: 'Failed to fetch stock data' });
-  }
+        res.json(response.data);
+    } catch (error) {
+        res.status(500).json({ error: 'Error fetching stock data' });
+    }
 });
 
 app.listen(PORT, () => {
-  console.log(`Server is running on http://localhost:${PORT}`);
+    console.log(`✅ Backend server running on http://localhost:${PORT}`);
 });
