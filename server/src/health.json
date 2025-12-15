@@ -1,0 +1,23 @@
+// scripts/update-health.js
+const fs = require("fs");
+const path = require("path");
+
+const root = path.join(__dirname, "..");
+function exists(p) {
+  return fs.existsSync(p) ? "ok" : "missing";
+}
+
+const health = {
+  checkedAt: new Date().toISOString(),
+  files: {
+    dailyPrice: exists(path.join(root, "server/src/daily-price.log")),
+    dailyReturns: exists(path.join(root, "server/src/daily-returns.log")),
+    equityCurve: exists(path.join(root, "server/src/equity-curve.log")),
+    sharpe: exists(path.join(root, "server/src/sharpe-ratio.log")),
+    maxDrawdown: exists(path.join(root, "server/src/max-drawdown.log")),
+  },
+};
+
+const outPath = path.join(root, "server/src/health.json");
+fs.writeFileSync(outPath, JSON.stringify(health, null, 2) + "\n", "utf8");
+console.log("Updated health.json");
