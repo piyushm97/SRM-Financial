@@ -1,0 +1,23 @@
+// scripts/update-config.js
+const fs = require("fs");
+const path = require("path");
+
+const cfgPath = path.join(__dirname, "..", "config", "config.json");
+
+let cfg = {
+  appName: "SRM Financial",
+  lastUpdated: null,
+  dailyJobRunCount: 0,
+};
+
+if (fs.existsSync(cfgPath)) {
+  cfg = JSON.parse(fs.readFileSync(cfgPath, "utf8"));
+}
+
+cfg.lastUpdated = new Date().toISOString();
+cfg.dailyJobRunCount = (cfg.dailyJobRunCount || 0) + 1;
+
+fs.mkdirSync(path.dirname(cfgPath), { recursive: true });
+fs.writeFileSync(cfgPath, JSON.stringify(cfg, null, 2) + "\n", "utf8");
+
+console.log("Updated config.json:", cfg);
